@@ -1,15 +1,17 @@
 import {
     ConflictException,
     Injectable,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { RegisterUserDto } from 'src/auth/dto/RegisterUser.dto';
 import * as bcrypt from 'bcrypt';
-import { User, UserDocument } from './schemas/user.schema';
+import { User, UserDocument, UserStatus } from './schemas/user.schema';
 import { Model, QueryFilter } from 'mongoose';
 import { SearchUsersDto } from './dto/searchUsers.dto';
 import { pagination } from 'src/common/pagination/pagination.util';
 import { PaginatedResponse } from 'src/common/pagination/pagination.interface';
+import { UserIdDto } from './dto/deleteUser.dto';
 
 @Injectable()
 export class UserService {
@@ -82,5 +84,30 @@ export class UserService {
             },
             select: '-passwordHash',
         });
+    }
+
+    async deleteUserById(userIdDto: UserIdDto): Promise<UserIdDto> {
+        const user = await this.userModel.findOneAndUpdate(
+            {
+                _id: userIdDto.userId,
+                status: {
+                    $ne: UserStatus.DELETED,
+                },
+            },
+            {
+                $set: {
+                    status: UserStatus.DELETED,
+                },
+            },
+            {
+                 returnDocument: 'after',
+            },
+        );
+        if (!user) {
+            throw new NotFoundException("User not found")
+        }
+        return {
+            userId: user._id.toString(),
+        };
     }
 }
