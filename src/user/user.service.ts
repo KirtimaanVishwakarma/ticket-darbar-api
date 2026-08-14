@@ -1,0 +1,86 @@
+import {
+    ConflictException,
+    Injectable,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { RegisterUserDto } from 'src/auth/dto/RegisterUser.dto';
+import * as bcrypt from 'bcrypt';
+import { User, UserDocument } from './schemas/user.schema';
+import { Model, QueryFilter } from 'mongoose';
+import { SearchUsersDto } from './dto/searchUsers.dto';
+import { pagination } from 'src/common/pagination/pagination.util';
+import { PaginatedResponse } from 'src/common/pagination/pagination.interface';
+
+@Injectable()
+export class UserService {
+    private saltOrRounds = 10;
+    constructor(@InjectModel(User.name) private userModel: Model<User>) { }
+
+    async findUserById(id: string): Promise<UserDocument | null> {
+        return await this.userModel.findById(id)
+    }
+
+    async findUserByEmail(email: string) {
+        return await this.userModel
+            .findOne({ email: email.toLowerCase() })
+            .select('+password');
+    }
+
+    async findUserByMobile(mobile: string) {
+        return await this.userModel.findOne({ mobile });
+    }
+
+    async registerUser(registerUserDto: RegisterUserDto): Promise<UserDocument> {
+        const isUserAlreadyExistWithEmail = await this.findUserByEmail(
+            registerUserDto.email,
+        );
+        if (isUserAlreadyExistWithEmail) {
+            throw new ConflictException('Email already registered');
+        }
+
+        const isUserAlreadyExistWithMobile = await this.findUserByMobile(
+            registerUserDto.mobile,
+        );
+        if (isUserAlreadyExistWithMobile) {
+            throw new ConflictException('Mobile number already registered');
+        }
+
+        const hashPassword = await bcrypt.hash(
+            registerUserDto.password,
+            this.saltOrRounds,
+        );
+        const registeredUser = new this.userModel({
+            ...registerUserDto,
+            password: hashPassword,
+        });
+        return await registeredUser.save();
+    }
+
+    async searchUserList(
+        searchQuery: SearchUsersDto,
+    ): Promise<PaginatedResponse<User>> {
+        const { limit, page, query, ...restFilter } = searchQuery;
+
+        const filter: QueryFilter<UserDocument> = {};
+
+        if (query?.trim()) {
+            const regex = new RegExp(query.trim(), 'i');
+            filter.$or = [{ fullName: regex }, { email: regex }, { mobile: regex }];
+        }
+
+        for (let key in restFilter) {
+            if (restFilter[key]) {
+                filter[key] = restFilter[key];
+            }
+        }
+
+        return pagination(this.userModel, filter, {
+            page,
+            limit,
+            sort: {
+                createdAt: -1,
+            },
+            select: '-passwordHash',
+        });
+    }
+}
