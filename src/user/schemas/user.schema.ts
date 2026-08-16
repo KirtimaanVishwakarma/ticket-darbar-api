@@ -51,6 +51,9 @@ export class User {
   })
   email!: string;
 
+  @Prop({ default: null })
+  emailVerificationToken!: string
+
   @Prop({ default: false })
   isEmailVerified?: boolean;
 
