@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserDocument } from 'src/user/schemas/user.schema';
 import { RefreshAccessTokenDto } from './dto/refreshAccessToken.dto';
 import { RegisterUserDto } from './dto/RegisterUser.dto';
+import { MailService } from 'src/common/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
         private readonly usersService: UserService,
         private jwtService: JwtService,
         private readonly configService: ConfigService,
+        private readonly mailService: MailService
     ) { }
 
     async getRefreshToken(user: UserDocument) {
@@ -40,7 +42,7 @@ export class AuthService {
         const payload = { sub: id, email, role, mobile };
         return await this.jwtService.signAsync(payload)
     }
-    
+
     async returnTokens(user: UserDocument) {
         const access_token = await this.getAccessToken(user)
         const refresh_token = await this.getRefreshToken(user)
@@ -81,8 +83,13 @@ export class AuthService {
         return await this.returnTokens(userData)
     }
 
-    async registerNewUser(registerUserDto: RegisterUserDto){
-         const user = await this.usersService.registerUser(registerUserDto);
-         return await this.returnTokens(user)
+    async registerNewUser(registerUserDto: RegisterUserDto): Promise<string> {
+        const user = await this.usersService.registerUser(registerUserDto);
+        await this.mailService.sendEmailVarification(user.email, user.fullName, user.emailVerificationToken)
+        return `Verification mail sent on ${user.email}`
+    }
+
+    async verifyEmailToken(token:string){
+        return await this.usersService.verifyEmailToken(token)
     }
 }

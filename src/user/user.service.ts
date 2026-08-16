@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     ConflictException,
     Injectable,
     NotFoundException,
@@ -12,11 +13,35 @@ import { SearchUsersDto } from './dto/searchUsers.dto';
 import { pagination } from 'src/common/pagination/pagination.util';
 import { PaginatedResponse } from 'src/common/pagination/pagination.interface';
 import { UserIdDto } from './dto/deleteUser.dto';
+import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
     private saltOrRounds = 10;
-    constructor(@InjectModel(User.name) private userModel: Model<User>) { }
+    constructor(@InjectModel(User.name) private userModel: Model<User>,
+        private jwtService: JwtService,
+        private readonly configService: ConfigService,) { }
+
+
+    private async emailVerificationToken(email: string): Promise<string> {
+        return await this.jwtService.signAsync(
+            {
+                sub: email,
+            },
+            {
+                secret:
+                    this.configService.getOrThrow<string>(
+                        'JWT_EMAIL_VERIFICATION_SECRET',
+                    ),
+
+                expiresIn:
+                    this.configService.getOrThrow<number>(
+                        'JWT_EMAIL_VERIFICATION_EXPIRES_IN',
+                    ),
+            },
+        );
+    }
 
     async findUserById(id: string): Promise<UserDocument | null> {
         return await this.userModel.findById(id)
@@ -30,6 +55,46 @@ export class UserService {
 
     async findUserByMobile(mobile: string) {
         return await this.userModel.findOne({ mobile });
+    }
+
+    async verifyEmailToken(token: string) {
+        try {
+            const verifyUser = await this.jwtService.verifyAsync<{
+                sub: string;
+            }>(token, {
+                secret: this.configService.getOrThrow<string>(
+                    'JWT_EMAIL_VERIFICATION_SECRET',
+                ),
+            });
+
+            const user = await this.userModel.findOneAndUpdate({
+                email: verifyUser.sub,
+                isMobileVerified: false
+            }, {
+                $set: {
+                    isEmailVerified: true,
+                    emailVerificationToken: null
+                }
+            },
+                { returnDocument: "after" })
+
+            if (!user) {
+                throw new BadRequestException(
+                    'User not found or email is already verified',
+                );
+            }
+            return user
+
+        } catch (error) {
+            if (error instanceof TokenExpiredError) {
+                throw new BadRequestException("Email verification link has expried")
+            }
+            if (error instanceof JsonWebTokenError) {
+                throw new BadRequestException(
+                    'Invalid email verification token',
+                );
+            }
+        }
     }
 
     async registerUser(registerUserDto: RegisterUserDto): Promise<UserDocument> {
@@ -51,9 +116,12 @@ export class UserService {
             registerUserDto.password,
             this.saltOrRounds,
         );
+
+        const emailToken = await this.emailVerificationToken(registerUserDto.email)
         const registeredUser = new this.userModel({
             ...registerUserDto,
             password: hashPassword,
+            emailVerificationToken: emailToken
         });
         return await registeredUser.save();
     }
@@ -100,7 +168,7 @@ export class UserService {
                 },
             },
             {
-                 returnDocument: 'after',
+                returnDocument: 'after',
             },
         );
         if (!user) {
