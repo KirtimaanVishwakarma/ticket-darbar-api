@@ -18,7 +18,7 @@ export class AuthService {
         private readonly mailService: MailService
     ) { }
 
-    async getRefreshToken(user: UserDocument) {
+    private async getRefreshToken(user: UserDocument) {
         return await this.jwtService.signAsync(
             {
                 sub: user._id.toString(),
@@ -37,13 +37,13 @@ export class AuthService {
         );
     }
 
-    async getAccessToken(user: UserDocument) {
+    private async getAccessToken(user: UserDocument) {
         const { email, mobile, id, role } = user;
         const payload = { sub: id, email, role, mobile };
         return await this.jwtService.signAsync(payload)
     }
 
-    async returnTokens(user: UserDocument) {
+    private async returnTokens(user: UserDocument) {
         const access_token = await this.getAccessToken(user)
         const refresh_token = await this.getRefreshToken(user)
         return {
@@ -90,6 +90,7 @@ export class AuthService {
     }
 
     async verifyEmailToken(token:string){
-        return await this.usersService.verifyEmailToken(token)
+        const user = await this.usersService.verifyEmailToken(token)
+        return await this.returnTokens(user)
     }
 }

@@ -57,7 +57,7 @@ export class UserService {
         return await this.userModel.findOne({ mobile });
     }
 
-    async verifyEmailToken(token: string) {
+    async verifyEmailToken(token: string): Promise<UserDocument> {
         try {
             const verifyUser = await this.jwtService.verifyAsync<{
                 sub: string;
@@ -94,6 +94,7 @@ export class UserService {
                     'Invalid email verification token',
                 );
             }
+            throw new BadRequestException('Email verification failed');
         }
     }
 

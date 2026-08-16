@@ -21,7 +21,6 @@ export class AuthController {
   @ResponseMessage("Email verified successfully")
   async verificationRegistration(@Query() query: VerificationRegistrationDto) {
     return await this.authService.verifyEmailToken(query.token)
-    
   }
 
   @ApiOperation({
