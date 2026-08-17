@@ -42,7 +42,6 @@ export class CityService {
       sort: {
         createdAt: -1,
       },
-      select: '-passwordHash',
     });
   }
 
