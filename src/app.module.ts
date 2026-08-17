@@ -10,6 +10,7 @@ import { JwtConfigModule } from './common/jwt/jwt.module';
 import { MailModule } from './common/mail/mail.module';
 import { CityModule } from './city/city.module';
 import { TheatreModule } from './theatre/theatre.module';
+import { ScreenModule } from './screen/screen.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { TheatreModule } from './theatre/theatre.module';
     MailModule,
     CityModule,
     TheatreModule,
+    ScreenModule,
   ],
   controllers: [AppController],
   providers: [AppService],
