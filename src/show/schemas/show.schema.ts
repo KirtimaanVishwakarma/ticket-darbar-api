@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { Movie } from 'src/movie/schemas/movie.schema';
+import { Screen } from 'src/screen/schemas/screen.schema';
 
 export type ShowDocument = HydratedDocument<Show>;
 
@@ -8,18 +10,29 @@ export type ShowDocument = HydratedDocument<Show>;
   collection: 'show',
 })
 export class Show {
-  // @Prop({
-  //     isRequired:true,
-  //     type: Types.ObjectId,
-  //     ref:
-  // })
+  @Prop({
+    isRequired: true,
+    type: Types.ObjectId,
+    ref: Movie.name,
+  })
   movieId!: string;
 
-  screenid!: string;
+  @Prop({
+    isRequired: true,
+    type: Types.ObjectId,
+    ref: Screen.name,
+  })
+  screenId!: string;
 
-  startTime!: Date;
+  @Prop({
+    isRequired: true,
+  })
+  startTime!: string;
 
+  @Prop({
+    isRequired: true,
+  })
   basePrice!: number;
 }
 
-const ShowSchema = SchemaFactory.createForClass(Show);
+export const ShowSchema = SchemaFactory.createForClass(Show);

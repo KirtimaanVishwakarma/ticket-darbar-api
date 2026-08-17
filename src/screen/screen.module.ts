@@ -12,5 +12,6 @@ import { TheatreModule } from 'src/theatre/theatre.module';
   ],
   controllers: [ScreenController],
   providers: [ScreenService],
+  exports: [ScreenService],
 })
 export class ScreenModule {}
