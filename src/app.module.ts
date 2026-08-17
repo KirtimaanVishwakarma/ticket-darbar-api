@@ -13,6 +13,7 @@ import { TheatreModule } from './theatre/theatre.module';
 import { ScreenModule } from './screen/screen.module';
 import { ShowModule } from './show/show.module';
 import { MovieModule } from './movie/movie.module';
+import { SeatModule } from './seat/seat.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MovieModule } from './movie/movie.module';
     ScreenModule,
     ShowModule,
     MovieModule,
+    SeatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
