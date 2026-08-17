@@ -11,6 +11,8 @@ import { MailModule } from './common/mail/mail.module';
 import { CityModule } from './city/city.module';
 import { TheatreModule } from './theatre/theatre.module';
 import { ScreenModule } from './screen/screen.module';
+import { ShowModule } from './show/show.module';
+import { MovieModule } from './movie/movie.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { ScreenModule } from './screen/screen.module';
     CityModule,
     TheatreModule,
     ScreenModule,
+    ShowModule,
+    MovieModule,
   ],
   controllers: [AppController],
   providers: [AppService],
