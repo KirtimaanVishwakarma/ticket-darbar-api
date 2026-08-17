@@ -11,86 +11,84 @@ import { MailService } from 'src/common/mail/mail.service';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly usersService: UserService,
-        private jwtService: JwtService,
-        private readonly configService: ConfigService,
-        private readonly mailService: MailService
-    ) { }
+  constructor(
+    private readonly usersService: UserService,
+    private jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly mailService: MailService,
+  ) {}
 
-    private async getRefreshToken(user: UserDocument) {
-        return await this.jwtService.signAsync(
-            {
-                sub: user._id.toString(),
-            },
-            {
-                secret:
-                    this.configService.getOrThrow<string>(
-                        'JWT_REFRESH_SECRET',
-                    ),
+  private async getRefreshToken(user: UserDocument) {
+    return await this.jwtService.signAsync(
+      {
+        sub: user._id.toString(),
+      },
+      {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
 
-                expiresIn:
-                    this.configService.getOrThrow<number>(
-                        'JWT_REFRESH_EXPIRES_IN',
-                    ),
-            },
-        );
+        expiresIn: this.configService.getOrThrow<number>(
+          'JWT_REFRESH_EXPIRES_IN',
+        ),
+      },
+    );
+  }
+
+  private async getAccessToken(user: UserDocument) {
+    const { email, mobile, id, role } = user;
+    const payload = { sub: id, email, role, mobile };
+    return await this.jwtService.signAsync(payload);
+  }
+
+  private async returnTokens(user: UserDocument) {
+    const access_token = await this.getAccessToken(user);
+    const refresh_token = await this.getRefreshToken(user);
+    return {
+      access_token,
+      refresh_token,
+    };
+  }
+
+  async signIn(body: SignInDto) {
+    const userByEmail = await this.usersService.findUserByEmail(body.email);
+    if (!userByEmail) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+    const isPasswordValid = await bcrypt.compare(
+      body.password,
+      userByEmail.password,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalied Email or Passowrd');
     }
 
-    private async getAccessToken(user: UserDocument) {
-        const { email, mobile, id, role } = user;
-        const payload = { sub: id, email, role, mobile };
-        return await this.jwtService.signAsync(payload)
-    }
+    return await this.returnTokens(userByEmail);
+  }
 
-    private async returnTokens(user: UserDocument) {
-        const access_token = await this.getAccessToken(user)
-        const refresh_token = await this.getRefreshToken(user)
-        return {
-            access_token,
-            refresh_token
-        }
+  async refreshAccessToken(refreshTokenDto: RefreshAccessTokenDto) {
+    const payload = await this.jwtService.verifyAsync<{
+      sub: string;
+    }>(refreshTokenDto.refreshToken, {
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+    });
+    const userData = await this.usersService.findUserById(payload.sub);
+    if (!userData || userData === null) {
+      throw new UnauthorizedException('Invailed refresh toekm');
     }
+    return await this.returnTokens(userData);
+  }
 
-    async signIn(body: SignInDto) {
-        const userByEmail = await this.usersService.findUserByEmail(body.email);
-        if (!userByEmail) {
-            throw new UnauthorizedException('Invalid email or password');
-        }
-        const isPasswordValid = await bcrypt.compare(
-            body.password,
-            userByEmail.password,
-        );
-        if (!isPasswordValid) {
-            throw new UnauthorizedException('Invalied Email or Passowrd');
-        }
+  async registerNewUser(registerUserDto: RegisterUserDto): Promise<string> {
+    const user = await this.usersService.registerUser(registerUserDto);
+    await this.mailService.sendEmailVarification(
+      user.email,
+      user.fullName,
+      user.emailVerificationToken,
+    );
+    return `Verification mail sent on ${user.email}`;
+  }
 
-        return await this.returnTokens(userByEmail)
-    }
-
-    async refreshAccessToken(refreshTokenDto: RefreshAccessTokenDto) {
-        const payload = await this.jwtService.verifyAsync<{
-            sub: string;
-        }>(refreshTokenDto.refreshToken, {
-            secret: this.configService.getOrThrow<string>(
-                'JWT_REFRESH_SECRET',
-            ),
-        });
-        const userData = await this.usersService.findUserById(payload.sub)
-        if (!userData || userData === null) {
-            throw new UnauthorizedException("Invailed refresh toekm")
-        }
-        return await this.returnTokens(userData)
-    }
-
-    async registerNewUser(registerUserDto: RegisterUserDto): Promise<string> {
-        const user = await this.usersService.registerUser(registerUserDto);
-        await this.mailService.sendEmailVarification(user.email, user.fullName, user.emailVerificationToken)
-        return `Verification mail sent on ${user.email}`
-    }
-
-    async verifyEmailToken(token:string){
-        const user = await this.usersService.verifyEmailToken(token)
-        return await this.returnTokens(user)
-    }
+  async verifyEmailToken(token: string) {
+    const user = await this.usersService.verifyEmailToken(token);
+    return await this.returnTokens(user);
+  }
 }

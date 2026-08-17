@@ -6,12 +6,8 @@ import { JwtConfigModule } from 'src/common/jwt/jwt.module';
 import { MailModule } from 'src/common/mail/mail.module';
 
 @Module({
-  imports: [
-    UserModule,
-    JwtConfigModule,
-    MailModule
-  ],
+  imports: [UserModule, JwtConfigModule, MailModule],
   controllers: [AuthController],
   providers: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

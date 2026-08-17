@@ -5,7 +5,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import { ApiProperty } from "@nestjs/swagger"
+import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterUserDto {
   @ApiProperty()
@@ -13,7 +13,7 @@ export class RegisterUserDto {
   fullName!: string;
 
   @ApiProperty({
-    description:"Enter vaild indian mobile number",
+    description: 'Enter vaild indian mobile number',
   })
   @IsString()
   @IsNotEmpty()
@@ -23,13 +23,14 @@ export class RegisterUserDto {
   mobile!: string;
 
   @ApiProperty({
-    description:"Vaild email id"
+    description: 'Vaild email id',
   })
   @IsEmail()
   email!: string;
 
   @ApiProperty({
-    description:"Password must contain atleast 9 characters, at least one uppercase, lowercase, number and one special character"
+    description:
+      'Password must contain atleast 9 characters, at least one uppercase, lowercase, number and one special character',
   })
   @IsString()
   @IsNotEmpty()

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -9,6 +8,7 @@ import { Connection } from 'mongoose';
 import { AuthModule } from './auth/auth.module';
 import { JwtConfigModule } from './common/jwt/jwt.module';
 import { MailModule } from './common/mail/mail.module';
+import { CityModule } from './city/city.module';
 
 @Module({
   imports: [
@@ -34,6 +34,7 @@ import { MailModule } from './common/mail/mail.module';
     UserModule,
     AuthModule,
     MailModule,
+    CityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

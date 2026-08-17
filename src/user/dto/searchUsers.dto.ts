@@ -6,15 +6,15 @@ import { ApiProperty } from '@nestjs/swagger';
 export class SearchUsersDto extends PaginationDto {
   @ApiProperty({
     enum: UserStatus,
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsString()
   status?: UserStatus;
 
-   @ApiProperty({
+  @ApiProperty({
     enum: UserRole,
-    required:false
+    required: false,
   })
   @IsOptional()
   @IsString()

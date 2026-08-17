@@ -52,7 +52,7 @@ export class User {
   email!: string;
 
   @Prop({ default: null })
-  emailVerificationToken!: string
+  emailVerificationToken!: string;
 
   @Prop({ default: false })
   isEmailVerified?: boolean;

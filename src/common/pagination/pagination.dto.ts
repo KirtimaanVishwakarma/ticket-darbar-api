@@ -6,7 +6,7 @@ export class PaginationDto {
   @ApiProperty({
     required: false,
     minimum: 1,
-    default: 1
+    default: 1,
   })
   @IsOptional()
   @Type(() => Number)
@@ -17,7 +17,7 @@ export class PaginationDto {
   @ApiProperty({
     required: false,
     minimum: 1,
-    maximum:100,
+    maximum: 100,
     default: 10,
   })
   @IsOptional()
@@ -28,8 +28,8 @@ export class PaginationDto {
   limit: number = 10;
 
   @ApiProperty({
-    default:"",
-    required:false
+    default: '',
+    required: false,
   })
   @IsOptional()
   @IsString()

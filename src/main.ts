@@ -11,12 +11,15 @@ async function bootstrap() {
     .setTitle('Ticket Darbar')
     .setDescription('Ticket Darbar API')
     .setVersion('1.0')
-    .addBearerAuth({
-      type: "http",
-      scheme: "bearer",
-      bearerFormat: "JWT",
-      description: "JWT access token"
-    }, 'access-token')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'JWT access token',
+      },
+      'access-token',
+    )
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);

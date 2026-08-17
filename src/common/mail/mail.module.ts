@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  ConfigModule,
-  ConfigService,
-} from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 
 import { MailService } from './mail.service';
@@ -20,16 +17,12 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.ad
       useFactory: (configService: ConfigService) => ({
         transport: {
           host: configService.get<string>('MAIL_HOST'),
-          port: Number(
-            configService.get<string>('MAIL_PORT'),
-          ),
+          port: Number(configService.get<string>('MAIL_PORT')),
           secure: false,
 
           auth: {
             user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>(
-              'MAIL_PASSWORD',
-            ),
+            pass: configService.get<string>('MAIL_PASSWORD'),
           },
         },
 
@@ -37,12 +30,12 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.ad
           from: configService.get<string>('MAIL_FROM'),
         },
         template: {
-          dir: process.cwd()+"/src/common/mail/templates",
+          dir: process.cwd() + '/src/common/mail/templates',
           adapter: new HandlebarsAdapter(),
-          options:{
-            strict: true
-          }
-        }
+          options: {
+            strict: true,
+          },
+        },
       }),
     }),
   ],
