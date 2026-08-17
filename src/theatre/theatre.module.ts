@@ -12,5 +12,6 @@ import { CityModule } from 'src/city/city.module';
   ],
   controllers: [TheatreController],
   providers: [TheatreService],
+  exports: [TheatreService],
 })
 export class TheatreModule {}
