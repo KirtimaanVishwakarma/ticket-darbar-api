@@ -14,37 +14,11 @@ export class MailService {
         await this.mailerService.sendMail({
             to: email,
 
-            subject: 'Verify your email',
-
-            html: `
-        <div>
-          <h2>Hello ${name}</h2>
-
-          <p>
-            Thank you for registering with Ticket Darbar.
-          </p>
-
-          <p>
-            Click the button below to verify your email.
-          </p>
-
-          <a
-            href="${verificationUrl}"
-            style="
-              padding: 10px 20px;
-              background: #e53935;
-              color: white;
-              text-decoration: none;
-            "
-          >
-            Verify Email
-          </a>
-
-          <p>
-            This link will expire soon.
-          </p>
-        </div>
-      `,
+            subject: 'Verify your Ticket Darbar account',
+            template: "emails/verify-email",
+            context: {
+              name, verificationUrl
+            }
         });
 
     }
